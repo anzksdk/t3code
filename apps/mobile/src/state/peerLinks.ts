@@ -2,7 +2,7 @@ import { useAtomValue } from "@effect/atom-react";
 import { linkableMachines } from "@t3tools/client-runtime/link-request";
 import { createPeerLinkEnvironmentAtoms } from "@t3tools/client-runtime/state/peerLinks";
 import type { EnvironmentId } from "@t3tools/contracts";
-import { useEffect, useEffectEvent, useMemo } from "react";
+import { useEffect, useEffectEvent } from "react";
 
 import { connectionAtomRuntime } from "../connection/runtime";
 import { useEnvironments } from "./environments";
@@ -35,14 +35,10 @@ export function useLinkableMachines(environmentId: EnvironmentId, enabled: boole
   const links = useEnvironmentQuery(
     enabled ? peerLinkEnvironment.list({ environmentId, input: {} }) : null,
   );
-  return useMemo(
-    () =>
-      linkableMachines({
-        environments,
-        threadEnvironmentId: environmentId,
-        links: links.data?.links ?? [],
-        connect: discovery.environments,
-      }),
-    [discovery.environments, environmentId, environments, links.data],
-  );
+  return linkableMachines({
+    environments,
+    threadEnvironmentId: environmentId,
+    links: links.data?.links ?? [],
+    connect: discovery.environments,
+  });
 }

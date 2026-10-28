@@ -362,7 +362,7 @@ export function asKnownContextRecord(
   record: ComposerContextRecord | undefined,
 ): KnownComposerContextRecord | undefined {
   if (!record || "payload" in record) return undefined;
-  return record as KnownComposerContextRecord;
+  return record;
 }
 
 export function composerContextImportLookupIds(

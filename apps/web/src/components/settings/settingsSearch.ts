@@ -1196,11 +1196,7 @@ export function getSettingsSearchTargetScope(targetId: string) {
 interface AutoSettlementSearchEnvironment {
   readonly environmentId: EnvironmentId;
   readonly connection: { readonly phase: EnvironmentConnectionPhase };
-  readonly serverConfig: {
-    readonly environment: {
-      readonly capabilities: { readonly threadAutoSettlement?: boolean };
-    };
-  } | null;
+  readonly serverConfig: object | null;
 }
 
 export function getThreadAutoSettlementSearchAvailability(
@@ -1211,12 +1207,7 @@ export function getThreadAutoSettlementSearchAvailability(
     (environment) =>
       environment.connection.phase === "connected" && environment.serverConfig !== null,
   );
-  const eligibleEnvironmentIds = connected
-    .filter(
-      (environment) =>
-        environment.serverConfig?.environment.capabilities.threadAutoSettlement === true,
-    )
-    .map((environment) => environment.environmentId);
+  const eligibleEnvironmentIds = connected.map((environment) => environment.environmentId);
   const selected = connected.filter((environment) =>
     scope?.environmentIds.includes(environment.environmentId),
   );

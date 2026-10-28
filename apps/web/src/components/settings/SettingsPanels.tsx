@@ -1498,11 +1498,6 @@ export function ThreadsSettingsPanel() {
     (environment?.serverConfig
       ? providersByEnvironment.get(environment.environmentId)
       : undefined) ?? EMPTY_SERVER_PROVIDERS;
-  const supportsAutoSettlement =
-    connectedEnvironments.length > 0 &&
-    connectedEnvironments.every(
-      (target) => target.serverConfig?.environment.capabilities.threadAutoSettlement === true,
-    );
   const supportsAutoSettlementScope = connectedEnvironments.every(
     (target) => target.serverConfig?.environment.capabilities.threadAutoSettlementScope === true,
   );
@@ -1621,7 +1616,7 @@ export function ThreadsSettingsPanel() {
         />
       </SettingsSection>
 
-      {supportsAutoSettlement ? (
+      {hasServerTargets ? (
         <SettingsSection id="auto-settle" title="Auto-settle">
           <SettingsRow
             serverScoped
@@ -1890,11 +1885,7 @@ export function MaintenanceSettingsPanel() {
   const { scope, environment, connectedEnvironments } = useSettingsScope();
   const environmentId = environment?.environmentId ?? null;
   const isEnvironmentScope = scope.environmentIds.length === 1 && environmentId !== null;
-  const supportsRestartContinuation =
-    connectedEnvironments.length > 0 &&
-    connectedEnvironments.every(
-      (target) => target.serverConfig?.environment.capabilities.threadRestartContinuation === true,
-    );
+  const hasServerTargets = connectedEnvironments.length > 0;
 
   return (
     <SettingsPageContainer>
@@ -1934,12 +1925,12 @@ export function MaintenanceSettingsPanel() {
           settingKeys={["continueThreadsAfterServerUpdate"]}
           description="Automatically resume interrupted threads after an update, crash, or machine restart on the selected environments."
           status={
-            !supportsRestartContinuation
+            !hasServerTargets
               ? "All selected connected environments must support restart continuation."
               : undefined
           }
           resetAction={
-            supportsRestartContinuation &&
+            hasServerTargets &&
             settings.continueThreadsAfterServerUpdate !==
               DEFAULT_UNIFIED_SETTINGS.continueThreadsAfterServerUpdate ? (
               <SettingResetButton
@@ -1957,7 +1948,7 @@ export function MaintenanceSettingsPanel() {
             <ScopedSwitch
               settingKeys={["continueThreadsAfterServerUpdate"]}
               checked={settings.continueThreadsAfterServerUpdate}
-              disabled={!supportsRestartContinuation}
+              disabled={!hasServerTargets}
               onCheckedChange={(checked) =>
                 updateSettings({ continueThreadsAfterServerUpdate: Boolean(checked) })
               }

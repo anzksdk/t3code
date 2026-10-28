@@ -4,7 +4,6 @@ import { resolveThreadReferenceCopyTarget } from "@t3tools/client-runtime/thread
 import {
   createContext,
   use,
-  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -54,32 +53,29 @@ export function HardwareKeyboardCommandProvider({
 }: PropsWithChildren<{ readonly pathname: string }>) {
   const navigation = useNavigation();
   const [paletteOpen, setPaletteOpen] = useState(false);
-  const closePalette = useCallback(() => setPaletteOpen(false), []);
-  const activeThreadRef = useMemo(() => parseActiveThreadPath(pathname), [pathname]);
+  const closePalette = () => setPaletteOpen(false);
+  const activeThreadRef = parseActiveThreadPath(pathname);
   const activeThread = useThreadShell(activeThreadRef);
-  const copyTarget = useMemo(
-    () =>
-      activeThreadRef === null
-        ? null
-        : resolveThreadReferenceCopyTarget({
-            threadId: activeThread?.id ?? activeThreadRef.threadId,
-            pullRequests: activeThread?.pullRequests,
-            linkedPullRequestUrl:
-              (activeThread?.linkedPullRequest ?? activeThread?.branchPullRequest)?.url ?? null,
-          }),
-    [activeThread, activeThreadRef],
-  );
+  const copyTarget =
+    activeThreadRef === null
+      ? null
+      : resolveThreadReferenceCopyTarget({
+          threadId: activeThread?.id ?? activeThreadRef.threadId,
+          pullRequests: activeThread?.pullRequests,
+          linkedPullRequestUrl:
+            (activeThread?.linkedPullRequest ?? activeThread?.branchPullRequest)?.url ?? null,
+        });
   const [copyFeedback, setCopyFeedback] = useState<GitActionProgress>(EMPTY_COPY_FEEDBACK);
   const copyRequestIdRef = useRef(0);
   const copyFeedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const dismissCopyFeedback = useCallback(() => {
+  const dismissCopyFeedback = () => {
     if (copyFeedbackTimerRef.current !== null) {
       clearTimeout(copyFeedbackTimerRef.current);
       copyFeedbackTimerRef.current = null;
     }
     setCopyFeedback(EMPTY_COPY_FEEDBACK);
-  }, []);
-  const showCopyFeedback = useCallback((feedback: GitActionProgress) => {
+  };
+  const showCopyFeedback = (feedback: GitActionProgress) => {
     if (copyFeedbackTimerRef.current !== null) {
       clearTimeout(copyFeedbackTimerRef.current);
     }
@@ -88,7 +84,7 @@ export function HardwareKeyboardCommandProvider({
       copyFeedbackTimerRef.current = null;
       setCopyFeedback(EMPTY_COPY_FEEDBACK);
     }, COPY_FEEDBACK_DISMISS_MS);
-  }, []);
+  };
   // oxlint-disable-next-line t3code/no-unreasoned-state-sync -- clears the copy feedback timer on unmount
   useEffect(
     () => () => {
@@ -123,76 +119,69 @@ export function HardwareKeyboardCommandProvider({
     // oxlint-disable-next-line react/memo-dependencies -- registrationVersion invalidates the snapshot of the external keyboard-command registry.
   }, [activeThreadRef, pathname, registrationVersion, navigation]);
 
-  const onCommand = useCallback(
-    (command: HardwareKeyboardCommand) => {
-      if (command === "commandPalette") {
-        setPaletteOpen(true);
-        return;
-      }
-      if (dispatchHardwareKeyboardCommand(command)) return;
+  const onCommand = (command: HardwareKeyboardCommand) => {
+    if (command === "commandPalette") {
+      setPaletteOpen(true);
+      return;
+    }
+    if (dispatchHardwareKeyboardCommand(command)) return;
 
-      if (command === "copyThreadReference") {
-        if (copyTarget === null) return;
-        const requestId = ++copyRequestIdRef.current;
-        void tryCopyTextWithHaptic(copyTarget.value, {
-          target: copyTarget.clipboardTarget,
-        }).then((didCopy) => {
-          if (requestId !== copyRequestIdRef.current) return;
-          showCopyFeedback(
-            didCopy
-              ? {
-                  phase: "success",
-                  label: copyTarget.successTitle,
-                  description: copyTarget.value,
-                }
-              : {
-                  phase: "error",
-                  label: copyTarget.failureTitle,
-                  description: "Try again.",
-                },
-          );
-        });
-        return;
-      }
+    if (command === "copyThreadReference") {
+      if (copyTarget === null) return;
+      const requestId = ++copyRequestIdRef.current;
+      void tryCopyTextWithHaptic(copyTarget.value, {
+        target: copyTarget.clipboardTarget,
+      }).then((didCopy) => {
+        if (requestId !== copyRequestIdRef.current) return;
+        showCopyFeedback(
+          didCopy
+            ? {
+                phase: "success",
+                label: copyTarget.successTitle,
+                description: copyTarget.value,
+              }
+            : {
+                phase: "error",
+                label: copyTarget.failureTitle,
+                description: "Try again.",
+              },
+        );
+      });
+      return;
+    }
 
-      if (command === "newTask") {
-        navigation.dispatch(selectWorkspaceDetail({ name: "Thread", params: { draft: {} } }));
+    if (command === "newTask") {
+      navigation.dispatch(selectWorkspaceDetail({ name: "Thread", params: { draft: {} } }));
+      return;
+    }
+    if (command === "back") {
+      // Beside a visible list, the first detail page has nothing to go back to.
+      if (Platform.OS === "ios" && workspaceHasColumns() && firstWorkspaceDetailOpen(navigation))
         return;
+      if (navigation.canGoBack()) {
+        navigation.goBack();
+      } else {
+        navigation.dispatch(StackActions.replace("Home"));
       }
-      if (command === "back") {
-        // Beside a visible list, the first detail page has nothing to go back to.
-        if (Platform.OS === "ios" && workspaceHasColumns() && firstWorkspaceDetailOpen(navigation))
-          return;
-        if (navigation.canGoBack()) {
-          navigation.goBack();
-        } else {
-          navigation.dispatch(StackActions.replace("Home"));
-        }
-        return;
-      }
+      return;
+    }
 
-      const thread = parseActiveThreadPath(pathname);
-      if (!thread) return;
-      if (command === "files" && !/\/files(?:\/|$)/.test(pathname)) {
-        navigation.navigate("ThreadFiles", thread);
-      }
-      if (command === "terminal" && !/\/terminal(?:\/|$)/.test(pathname)) {
-        navigation.navigate("ThreadTerminal", thread);
-      }
-      if (command === "review" && !/\/review(?:\/|$)/.test(pathname)) {
-        navigation.navigate("ThreadReview", thread);
-      }
-    },
-    [copyTarget, navigation, pathname, showCopyFeedback],
-  );
+    const thread = parseActiveThreadPath(pathname);
+    if (!thread) return;
+    if (command === "files" && !/\/files(?:\/|$)/.test(pathname)) {
+      navigation.navigate("ThreadFiles", thread);
+    }
+    if (command === "terminal" && !/\/terminal(?:\/|$)/.test(pathname)) {
+      navigation.navigate("ThreadTerminal", thread);
+    }
+    if (command === "review" && !/\/review(?:\/|$)/.test(pathname)) {
+      navigation.navigate("ThreadReview", thread);
+    }
+  };
 
-  const palette = useMemo(
-    () =>
-      paletteOpen ? (
-        <CommandPalette pathname={pathname} onClose={closePalette} onCommand={onCommand} />
-      ) : null,
-    [closePalette, onCommand, paletteOpen, pathname],
-  );
+  const palette = paletteOpen ? (
+    <CommandPalette pathname={pathname} onClose={closePalette} onCommand={onCommand} />
+  ) : null;
 
   return (
     <CommandPaletteContext value={palette}>
