@@ -1,3 +1,4 @@
+import { remoteDesktop } from "../../state/remoteDesktop";
 import * as Dialog from "../../components/ui/Dialog";
 import { useAtom, useAtomValue } from "@effect/atom-react";
 import { useNavigation, type StaticScreenProps } from "@react-navigation/native";
@@ -87,6 +88,7 @@ function EnvironmentDetail({ environmentId }: { readonly environmentId: Environm
         provider.updateState?.status === "running" || provider.updateState?.status === "queued",
     ) ?? false;
   const canManageProviders = useEnvironmentScope(environmentId, AuthProvidersManageScope);
+  const canControlDesktop = useAtomValue(remoteDesktop.start.permissionAtom(environmentId));
   const canRead = useEnvironmentScope(environmentId, AuthOrchestrationReadScope);
   const busy = !connected || pending !== null || running || providerBusy;
   const disabled = !allowed || busy;
@@ -194,6 +196,14 @@ function EnvironmentDetail({ environmentId }: { readonly environmentId: Environm
                 onRemove={connections.onRemoveEnvironmentPress}
                 onSetEnabled={connections.onSetEnvironmentEnabled}
                 onUpdate={connections.onUpdateEnvironment}
+              />
+            </SettingsSection>
+            <SettingsSection title="Remote desktop">
+              <SettingsActionRow
+                label="Control this Mac"
+                description="View the main display and use its mouse and keyboard."
+                disabled={!connected || !canControlDesktop}
+                onPress={() => navigation.navigate("RemoteDesktop", { environmentId })}
               />
             </SettingsSection>
             <EnvironmentRoutesSection

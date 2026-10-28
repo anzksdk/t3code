@@ -1,3 +1,5 @@
+import * as RemoteDesktop from "./remoteDesktop/RemoteDesktop.ts";
+import * as RemoteDesktopNativeHost from "./remoteDesktop/NativeHost.ts";
 import * as ProviderEventLoggers from "@t3tools/provider-core/server/ProviderEventLoggers";
 import type { RelayManagedEndpointRuntimeConfig } from "@t3tools/contracts/relay";
 import * as Random from "effect/Random";
@@ -628,7 +630,14 @@ const layerRuntimeCoreDependenciesBase = Layer.mergeAll(
   Layer.provideMerge(layerSourceControlProviderRegistry),
   Layer.provideMerge(layerGit),
   Layer.provideMerge(layerVcs),
-  Layer.provideMerge(Layer.mergeAll(layerTerminal, layerPreview, layerDevice)),
+  Layer.provideMerge(
+    Layer.mergeAll(
+      layerTerminal,
+      layerPreview,
+      layerDevice,
+      RemoteDesktop.layer.pipe(Layer.provide(RemoteDesktopNativeHost.layer)),
+    ),
+  ),
   Layer.provideMerge(layerPersistence),
   Layer.provideMerge(
     Layer.mergeAll(Keybindings.layer, EnvironmentTheme.layer, UsageLimitSources.layer),

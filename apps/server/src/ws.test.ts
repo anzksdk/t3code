@@ -1,3 +1,4 @@
+import * as RemoteDesktop from "./remoteDesktop/RemoteDesktop.ts";
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import { assert, it } from "@effect/vitest";
 import {
@@ -414,6 +415,7 @@ const layerUnusedConfigRpcServices = Layer.mergeAll(
   Layer.mock(CommandOutputHub.CommandOutputHub)({}),
   Layer.mock(CodexInstallation.CodexInstallation)({ managedDirectory: "/unused" }),
   Layer.mock(DeviceService.DeviceService)({}),
+  Layer.mock(RemoteDesktop.RemoteDesktop)({ disconnect: () => Effect.void }),
   Layer.mock(EnvironmentTheme.EnvironmentThemeService)({}),
   Layer.mock(GitWorkflowService.GitWorkflowService)({}),
   Layer.mock(HostResources.HostResources)({}),

@@ -1,3 +1,4 @@
+import { RemoteDesktopRouteScreen } from "./features/remote-desktop/RemoteDesktopRouteScreen";
 import { isDraftThreadRoute } from "./features/threads/thread-route-state";
 import { ComponentCatalogScreen } from "./features/development/ComponentCatalogScreen";
 import { PullRequestGuideStopScreen } from "./features/pull-requests/guide/PullRequestGuideScreen";
@@ -807,6 +808,10 @@ const RootStackConfig = createWorkspaceStackNavigator({
         ...THREAD_HEADER_OPTIONS,
         presentation: "fullScreenModal",
       },
+    }),
+    RemoteDesktop: createNativeStackScreen({
+      screen: RemoteDesktopRouteScreen,
+      options: { presentation: "fullScreenModal", headerShown: false, gestureEnabled: false },
     }),
     ThreadDevicePreview: createNativeStackScreen({
       screen: DevicePreviewRouteScreen,

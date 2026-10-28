@@ -1,4 +1,12 @@
 import {
+  RemoteDesktopStatus,
+  RemoteDesktopSession,
+  RemoteDesktopFrame,
+  RemoteDesktopLeaseInput,
+  RemoteDesktopControlInput,
+  RemoteDesktopError,
+} from "./remoteDesktop.ts";
+import {
   OrchestrationV2SearchThreadError,
   OrchestrationV2SearchThreadInput,
   OrchestrationV2SearchThreadResult,
@@ -481,6 +489,11 @@ export const WS_METHODS = {
   previewStopLocalServer: "preview.stopLocalServer",
 
   deviceConfigure: "device.configure",
+  remoteDesktopStatus: "remoteDesktop.status",
+  remoteDesktopStart: "remoteDesktop.start",
+  remoteDesktopFrame: "remoteDesktop.frame",
+  remoteDesktopControl: "remoteDesktop.control",
+  remoteDesktopStop: "remoteDesktop.stop",
   deviceList: "device.list",
   deviceTestHost: "device.testHost",
   deviceEasAccount: "device.easAccount",
@@ -1639,6 +1652,32 @@ const WsDeviceEasAccountRpc = Rpc.make(WS_METHODS.deviceEasAccount, {
   error: Schema.Union([DeviceEasAccountError, EnvironmentAuthorizationError]),
 });
 
+const WsRemoteDesktopStatusRpc = Rpc.make(WS_METHODS.remoteDesktopStatus, {
+  payload: Schema.Struct({}),
+  success: RemoteDesktopStatus,
+  error: Schema.Union([RemoteDesktopError, EnvironmentAuthorizationError]),
+});
+const WsRemoteDesktopStartRpc = Rpc.make(WS_METHODS.remoteDesktopStart, {
+  payload: Schema.Struct({}),
+  success: RemoteDesktopSession,
+  error: Schema.Union([RemoteDesktopError, EnvironmentAuthorizationError]),
+});
+const WsRemoteDesktopFrameRpc = Rpc.make(WS_METHODS.remoteDesktopFrame, {
+  payload: RemoteDesktopLeaseInput,
+  success: RemoteDesktopFrame,
+  error: Schema.Union([RemoteDesktopError, EnvironmentAuthorizationError]),
+});
+const WsRemoteDesktopControlRpc = Rpc.make(WS_METHODS.remoteDesktopControl, {
+  payload: RemoteDesktopControlInput,
+  success: Schema.Void,
+  error: Schema.Union([RemoteDesktopError, EnvironmentAuthorizationError]),
+});
+const WsRemoteDesktopStopRpc = Rpc.make(WS_METHODS.remoteDesktopStop, {
+  payload: RemoteDesktopLeaseInput,
+  success: Schema.Void,
+  error: Schema.Union([RemoteDesktopError, EnvironmentAuthorizationError]),
+});
+
 const WsDeviceListRpc = Rpc.make(WS_METHODS.deviceList, {
   payload: DeviceListInput,
   success: DeviceServiceState,
@@ -2146,6 +2185,11 @@ export const WsRpcGroup = RpcGroup.make(
   WsPreviewStopLocalServerRpc,
   WsSubscribeDiscoveredLocalServersRpc,
   WsDeviceConfigureRpc,
+  WsRemoteDesktopStatusRpc,
+  WsRemoteDesktopStartRpc,
+  WsRemoteDesktopFrameRpc,
+  WsRemoteDesktopControlRpc,
+  WsRemoteDesktopStopRpc,
   WsDeviceListRpc,
   WsDeviceTestHostRpc,
   WsDeviceEasAccountRpc,

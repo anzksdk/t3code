@@ -3,6 +3,22 @@
 Connect a phone, browser, or another desktop app to T3 Code running on a different
 machine. That machine must stay running and reachable while you work.
 
+## Remote desktop (fork preview)
+
+In the fork mobile app, open **Settings → Environments → your Mac → Remote desktop**,
+then **Connect to Mac**. The host must have this fork's remote desktop helper enabled
+and macOS Screen Recording and Accessibility permissions. The connection also needs
+Terminal operate permission.
+
+Tap or drag on the picture to use the mouse. Choose Right click or Scroll to change
+the touch action. Send text with the keyboard field. Copy and Paste operate on the
+Mac's own clipboard; they do not synchronize it with your phone.
+
+This first version shows the main display in compatibility mode, up to four frames
+per second. It is intended for desktop tasks, not smooth video. Stop, Close, or
+leaving the foreground ends control. Returning requires connecting again. The Mac
+menu bar also has a stop action. Only one viewer can control the Mac at a time.
+
 ## T3 Connect
 
 T3 Connect makes an environment available to your other devices without setting

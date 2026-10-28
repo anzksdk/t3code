@@ -502,6 +502,14 @@
     "./provider-clients": {
       "types": "./src/providerClients.ts",
       "default": "./src/providerClients.ts"
+    },
+    "./state/remoteDesktop": {
+      "types": "./src/state/remoteDesktop.ts",
+      "default": "./src/state/remoteDesktop.ts"
+    },
+    "./remoteDesktop/viewer": {
+      "types": "./src/remoteDesktop/viewer.ts",
+      "default": "./src/remoteDesktop/viewer.ts"
     }
   },
   "scripts": {

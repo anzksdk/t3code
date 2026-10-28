@@ -10,6 +10,7 @@ import {
   AuthAccessReadScope,
   AuthAccessWriteScope,
   AuthOrchestrationOperateScope,
+  AuthTerminalOperateScope,
   AuthOrchestrationReadScope,
   AuthPreviewOperateScope,
   AuthSettingsWriteScope,
@@ -66,10 +67,26 @@ const setup = Effect.gen(function* () {
 });
 
 describe("command permissions", () => {
-  it.effect("requires the destination preview grant to close a browser tab", () =>
+  it.effect("requires the destination grants for browser and desktop controls", () =>
     Effect.scoped(
       Effect.gen(function* () {
         const registry = yield* setup;
+        const desktop = createCommandPermissions(runtime, WS_METHODS.remoteDesktopStart);
+        registry.set(sessions(env), AsyncResult.success(grant(true)));
+        expect(registry.get(desktop.permissionAtom(env))).toBe(false);
+        expect((yield* desktop.authorize(registry, env).pipe(Effect.flip))._tag).toBe(
+          "EnvironmentAuthorizationError",
+        );
+        registry.set(
+          sessions(env),
+          AsyncResult.success({
+            ...grant(false),
+            scopes: [AuthTerminalOperateScope],
+            permissions: [AuthTerminalOperateScope],
+          }),
+        );
+        expect(registry.get(desktop.permissionAtom(env))).toBe(true);
+        yield* desktop.authorize(registry, env);
         const close = createCommandPermissions(runtime, WS_METHODS.previewClose);
         registry.set(sessions(env), AsyncResult.success(grant(true)));
         expect(registry.get(close.permissionAtom(env))).toBe(false);

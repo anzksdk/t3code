@@ -1,3 +1,4 @@
+import * as RemoteDesktop from "./remoteDesktop/RemoteDesktop.ts";
 import { OrchestrationDispatchCommandError } from "@t3tools/contracts";
 import * as Context from "effect/Context";
 import * as Crypto from "effect/Crypto";
@@ -1290,6 +1291,9 @@ export const layerWsRpc = (
       const reviewGuides = yield* PullRequestReviewGuideService.PullRequestReviewGuideService;
       const pullRequestSync = yield* PullRequestSyncReactor.PullRequestSyncReactor;
       const deviceService = yield* DeviceService.DeviceService;
+      const remoteDesktop = yield* RemoteDesktop.RemoteDesktop;
+      const remoteDesktopOwner = `${currentSessionId}:${yield* (yield* Crypto.Crypto).randomUUIDv4().pipe(Effect.orDie)}`;
+      yield* Effect.addFinalizer(() => remoteDesktop.disconnect(remoteDesktopOwner));
       const deviceHostContext =
         yield* Effect.context<Effect.Services<ReturnType<typeof remoteSshDeviceHosts>>>();
       const orchestrationEngine = yield* Orchestrator.OrchestratorV2;
@@ -3081,6 +3085,14 @@ export const layerWsRpc = (
         [WS_METHODS.previewReportProfiles]: (input) => serverBrowser.reportProfiles(input),
         [WS_METHODS.previewReportStatus]: (input) => previewManager.reportStatus(input),
         [WS_METHODS.subscribePreviewEvents]: (_input) => previewManager.events,
+        [WS_METHODS.remoteDesktopStatus]: () => remoteDesktop.status,
+        [WS_METHODS.remoteDesktopStart]: () => remoteDesktop.start(remoteDesktopOwner),
+        [WS_METHODS.remoteDesktopFrame]: (input) =>
+          remoteDesktop.frame(remoteDesktopOwner, input.leaseId),
+        [WS_METHODS.remoteDesktopControl]: (input) =>
+          remoteDesktop.control(remoteDesktopOwner, input),
+        [WS_METHODS.remoteDesktopStop]: (input) =>
+          remoteDesktop.stop(remoteDesktopOwner, input.leaseId),
         [WS_METHODS.deviceConfigure]: (input) => deviceService.configure(input),
         [WS_METHODS.deviceTestHost]: (input) => deviceService.testHost(input),
         [WS_METHODS.deviceEasAccount]: (input) => deviceService.easAccount(input),
